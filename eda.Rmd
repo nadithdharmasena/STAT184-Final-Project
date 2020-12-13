@@ -1,16 +1,21 @@
 ---
 title: "Exploratory Data Analysis Project"
 author: "Nadith Dharmasena"
-output: html_notebook
+output: 
+  html_notebook: 
+    toc: yes
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 ### Guiding Question
 
-On average, did the United States of America suffer worse economic consequences than the rest of the world's developed countries? I define "bad" economic consequences as decreased GDP and increased unemployment. Therefore, if the GDP of the US dipped lower and its unemployment rate rose higher on average and percent-wise than other countries, the US would be defined to have suffered "worse" economic consequences. If the reverse is true, then the US would be defined to have enjoyed "better" economic consequences.
+On average, did the United States of America suffer worse economic outcomes than the rest of the world's developed countries from the coronavirus pandemic? I define negative economic outcomes as decreased GDP and increased unemployment. Therefore, if the GDP of the US dipped lower and its unemployment rate rose higher on average and percent-wise than other countries, the US would be defined to have suffered worse economic outcomes. If the reverse is true, then the US would be defined to have enjoyed more positive economic outcomes. The conclusion of this data exploration is important to American lawmakers to understand how well how their policy responses worked compared to the responses of other world governments.
 
 ### Data Sources Overview
 
-My project examines four data sources to determine the answer to my guiding question. All of the datasets contain economic statistics about OECD countries. OECD countries are generally developed countries, and they collectively comprise the majority of global GDP. Due to their highly developed economies and adept governments, these countries publish detailed economic reports quarter by quarter. The completeness of the economic data made studying these countries more feasible than analyzing developing countries, who rarely publish comprehensive reports.
+My project examines four data sources to determine the answer to my guiding question. All of the data sets contain economic statistics about OECD countries. OECD countries are generally developed countries, and they collectively comprise the vast majority of global GDP. Furthermore, these countries publish detailed economic reports quarter by quarter. The completeness of the economic data makes studying these countries more feasible than analyzing developing countries, who rarely publish comprehensive reports.
 
 ##### Brief Synopsis of Data Sources
 
@@ -64,7 +69,7 @@ My project examines four data sources to determine the answer to my guiding ques
 
 ### Importing Libraries
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # clean up workspace environment
 rm(list = ls())
 
@@ -78,16 +83,19 @@ library(lubridate)
 ### Data Intake
 
 ```{r}
-GDP <- read.csv("/Users/nadithdharmasena/Desktop/Academics/Junior Year - PSU/First Semester/STAT 184/Project/GDP.csv")
-UNEMPL <- read.csv("/Users/nadithdharmasena/Desktop/Academics/Junior Year - PSU/First Semester/STAT 184/Project/UNEMPLOYMENT.csv")
-COUNTRYCODES <- read.csv("/Users/nadithdharmasena/Desktop/Academics/Junior Year - PSU/First Semester/STAT 184/Project/COUNTRYCODES.csv")
-mlp <- read.csv("/Users/nadithdharmasena/Downloads/MedianListPrice.csv")
-inv <- read.csv("/Users/nadithdharmasena/Downloads/Inventory.csv")
+# Reading in relevant data
+GDP <- read.csv("GDP.csv")
+UNEMPL <- read.csv("UNEMPLOYMENT.csv")
+COUNTRYCODES <- read.csv("COUNTRYCODES.csv")
+mlp <- read.csv("MedianListPrice.csv")
+inv <- read.csv("Inventory.csv")
 ```
 
 ### Perusing the Data Tables
 
 ```{r}
+# Displaying tables and accompanying summaries to understand
+# Data before further analysis
 head(GDP)
 summary(GDP)
 
@@ -103,6 +111,8 @@ head(inv)
 Here, I use the COUNTRYCODES data set to add a country name variable to each case according to its country code. Additionally, I convert some variables from factor type to character string type.
 
 ```{r}
+# Using CountryCodes to map country codes in raw GDP table to their
+# Expanded names and store them in the Country column 
 GDP_refined <- merge(GDP, COUNTRYCODES, by.x = "LOCATION", by.y = "CODE") %>%
   mutate(
     LOCATION = as.character(LOCATION),
@@ -110,6 +120,8 @@ GDP_refined <- merge(GDP, COUNTRYCODES, by.x = "LOCATION", by.y = "CODE") %>%
     Country = as.character(Country)
   )
 
+# Using CountryCodes to map country codes in raw UNEMPL table to their
+# Expanded names and store them in the Country column 
 UNEMPL_refined <- merge(UNEMPL, COUNTRYCODES, by.x = "LOCATION", by.y = "CODE") %>%
   mutate(
     LOCATION = as.character(LOCATION),
@@ -117,9 +129,8 @@ UNEMPL_refined <- merge(UNEMPL, COUNTRYCODES, by.x = "LOCATION", by.y = "CODE") 
     Country = as.character(Country)
   )
 
-GDP_refined
-
-UNEMPL_refined
+head(GDP_refined)
+head(UNEMPL_refined)
 ```
 
 
@@ -127,9 +138,10 @@ UNEMPL_refined
 
 #### United States vs. Other G7 Countries
 
-We can see from the box plot below that the United States has had more consistent GDP growth over the last two decades than most of the other G7 countries. I can make this assertion because the upper 75% of quarterly GDP changes have been positive in the US. Excluding a few outlier quarters, the vast majority of US quarters have had positive GDP growth. Furthermore, the United States has had lower unemployment rates than most other G7 countries over the past two decades. Therefore, it is reasonable to say that the United States economy is one of the strongest in the world in regular times. It also follows that the highly stable economy of the United States should have been able to weather the pandemic much more easily than other countries. 
+We can see from the box plot below that the United States has had more consistent GDP growth over the last two decades than most of the other G7 countries. I can make this assertion because the upper 75% of quarterly GDP changes have been positive in the US. Excluding a few outlier quarters, the vast majority of US quarters have had positive GDP growth. Furthermore, the United States has had lower unemployment rates than most other G7 countries over the past two decades. Therefore, it is reasonable to say that the United States economy is likely the strongest in the world in regular times. It also follows that the highly stable economy of the United States should have been able to weather the pandemic much more easily than other countries. 
 
 ```{r}
+# Rendering box plot of each G7 country's quarterly GDP growth rates over past two decades
 avg_gdp_g7_boxplot <- GDP_refined %>%
   filter(Country %in% c("United States", "France", "Germany", "United Kingdom", "Canada", "Italy", "Japan")) %>%
   filter(Value < 5 & Value > -5) %>%
@@ -140,6 +152,7 @@ avg_gdp_g7_boxplot <- GDP_refined %>%
 
 avg_gdp_g7_boxplot
 
+# Rendering box plot of each G7 country's unemployment rates over past two decades
 avg_unempl_g7_boxplot <- UNEMPL_refined %>%
   filter(Country %in% c("United States", "France", "Germany", "United Kingdom", "Canada", "Italy", "Japan")) %>%
   ggplot(aes(x = Country, y = Value)) +
@@ -152,9 +165,11 @@ avg_unempl_g7_boxplot
 
 #### Important Caveat
 
-It is important to note that I only compared the United States to other superpower economies because it does not make sense to compare the US economy to developing ones. Those countries have high growth rates because even small increases in nominal GDP, relative to the major economies' increases, result in large percentage changes. However, their high growth rates do not imply they were as economically stable as the US prior to the coronavirus pandemic. We can see this phenomenon below.
+It is important to note that I only compared the United States to other superpower economies because it does not make sense to compare the US economy to developing ones. Those countries have high growth rates because even small increases in nominal GDP, relative to those of the superpower economies, result in large percentage changes. However, their high growth rates do not imply they were as economically stable as the US prior to the coronavirus pandemic. We can see this phenomenon below.
 
 ```{r}
+# Rendering box plot of developing country's GDP growth rates
+# And the US GDP growth rate over the past two decades
 avg_gdp_developing_plot <- GDP_refined %>%
   filter(Country %in% c("United States", "Turkey", "Israel", "Brazil", "Argentina", "India")) %>%
   filter(Value < 5 & Value > -5) %>%
@@ -169,20 +184,23 @@ avg_gdp_developing_plot
 
 ### 2020-Q2 Economic Health
 
-The 2020-Q2 economic statistics were the first set published following the realization of the coronavirus pandemic. Therefore, this quarter can gauge the impact the pandemic had on any nation's economic health. The two plots and summary statistics below tell a confusing story. On the one hand, the United States outperforms the rest of the OECD, including the G7 countries, for quarterly GDP change. Whereas the US GDP only shrunk by 9%, the rest of the OECD countries' GDPs shrunk by about 10.6%. On the other hand, the United States labor market suffered much more than the rest of the G7 and OECD. The US unemployment rate in 2020 Q2 rose to a little over 12.5%, whereas the OECD had an average unemployment rate of 7.5%. This data demonstrates that although the US economy did not shrink as much as other countries, its labor market suffered far more than the labor markets of other OECD countries. This inconsistency makes it significantly harder to compare the pandemic's economic consequences on the United States to the rest of the developed world.
+The 2020-Q2 economic statistics were the first set published following the realization of the coronavirus pandemic. Therefore, this quarter can gauge the impact the pandemic had on any nation's economic health. The two plots and summary statistics below tell a confusing story. On the one hand, the United States outperforms the rest of the OECD, including the G7 countries, for quarterly GDP change. Whereas the US GDP only shrunk by 9%, the rest of the OECD countries' GDPs shrunk by about 10.6%. On the other hand, the United States labor market suffered much more than the rest of the G7 and OECD. The US unemployment rate in 2020 Q2 rose to a little over 12.5%, whereas the OECD had an average unemployment rate of 7.5%. This data demonstrates that although the US economy did not shrink as much as other countries, its labor market suffered far more than the labor markets of other OECD countries. This inconsistency makes it significantly harder to compare the pandemic's economic impacts on the United States to its impacts on the rest of the developed world.
 
 
 ```{r}
+# Rendering dot plots of GDP growth rate in 2020-Q2 for G7 countries
 q2_2020_gdpchange.g7plot <- GDP_refined %>%
   filter(Country %in% c("United States", "France", "Germany", "United Kingdom", "Canada", "Italy", "Japan")) %>%
   filter(TIME == "2020-Q2") %>%
   ggplot(aes(x = Country, y = Value)) +
   geom_point() +
   theme_bw() +
-  ggtitle("2020-Q2 G7 GDP")
+  ggtitle("2020-Q2 G7 GDP") + 
+  ylab("GDP Growth Rate (%)")
 
 q2_2020_gdpchange.g7plot
 
+# Calculating average GDP growth rate in 2020-Q2 for all countries excluding the US
 q2_2020_gdpchange.excl_us <- GDP_refined %>%
   filter(!(LOCATION %in% c("United States"))) %>%
   filter(TIME == "2020-Q2") %>%
@@ -190,16 +208,19 @@ q2_2020_gdpchange.excl_us <- GDP_refined %>%
 
 q2_2020_gdpchange.excl_us
 
+# Rendering dot plot for unemployment rate in 2020-Q2 for G7 countries
 q2_2020_unempl.g7plot <- UNEMPL_refined %>%
   filter(Country %in% c("United States", "France", "Germany", "United Kingdom", "Canada", "Italy", "Japan")) %>%
   filter(TIME == "2020-Q2") %>%
   ggplot(aes(x = Country, y = Value)) +
   geom_point() +
   theme_bw() +
-  ggtitle("2020-Q2 G7 Unemployment")
+  ggtitle("2020-Q2 G7 Unemployment") +
+  ylab("Unemployment Rate (%)")
 
 q2_2020_unempl.g7plot
 
+# Calculating average unemployment rate in 2020-Q2 for all countries excluding the US
 q2_2020_unempl.excl_us <- UNEMPL_refined %>%
   filter(!(LOCATION %in% c("United States"))) %>%
   filter(TIME == "2020-Q2") %>%
@@ -210,10 +231,13 @@ q2_2020_unempl.excl_us
 
 ### Economic Impact in Context
 
-The visualizations below can give the reader insight into how the four largest economies in the world performed in the context of their previous performance. We can see from the first graph, titled "GDP in Context", that the GDP of United States shrunk less drastically than every OECD country except Japan. From the graph titled "Unemployment in Context", we can see that the US unemployment rate far exceeded that of the other mega-economies. 
+The visualizations below can give the reader insight into how the four largest economies in the world performed in the context of their previous performance. We can see from the first graph, titled "GDP in Context", that the GDP of the United States shrunk less drastically than that of every other country except Japan. From the graph titled "Unemployment in Context", we can see that the US unemployment rate far exceeded that of the other mega-economies. 
 
 
 ```{r}
+
+# Returns time series of last two decades of GDP growth rates
+# For the world's four largest economies, excluding China
 getGDPTimeSeries <- function () {
   
   ret <- GDP_refined %>%
@@ -224,6 +248,8 @@ getGDPTimeSeries <- function () {
   
 }
 
+# Returns time series of last two decades of unemployment rates
+# For the world's four largest economies, excluding China
 getUnemplTimeSeries <- function () {
   
   ret <- UNEMPL_refined %>%
@@ -237,32 +263,43 @@ getUnemplTimeSeries <- function () {
 
 
 ```{r}
+
+# Renders line, and overlaid dot plot, of the time series 
+# of GDP growth rates for the world's four largest economies
 getGDPTimeSeries() %>%
   ggplot(aes(x = TIME, y = Value, color = Country)) +
   geom_line() +
+  geom_point() +
   xlim(as.Date(as.yearqtr("2018-Q1", "%Y-Q%q")), as.Date(as.yearqtr("2020-Q2", "%Y-Q%q"))) +
-  ggtitle("GDP in Context") + 
+  ggtitle("GDP in Context") +
+  ylab("GDP Growth Rate (%)") +
   theme_bw()
 
-
+# Renders line, and overlaid dot plot, of the time series 
+# of unemployment rates for the world's four largest economies
 getUnemplTimeSeries() %>%
   ggplot(aes(x = TIME, y = Value, color = Country)) +
   geom_line() +
+  geom_point() +
   xlim(as.Date(as.yearqtr("2018-Q1", "%Y-Q%q")), as.Date(as.yearqtr("2020-Q2", "%Y-Q%q"))) +
   ggtitle("Unemployment in Context") + 
+  ylab("Unemployment Rate (%)") +
   theme_bw()
 ```
 
 
 ### Judging Impact on Ordinary People
 
-After noticing the unusually high unemployment rate in the US, I hypothesized that the lack of income among millions of ordinary Americans would exhibit itself in the prices and for-sale quantities of widely-held assets. From general knowledge, I know that ordinary people are heavily invested in homes. Therefore, to judge the impact of the coronavirus pandemic on ordinary people, I chose to analyze home prices and quantity of for-sale homes. Before looking at the data, I reasoned that home prices should have decreased and for-sale home quantity should have increased if the coronavirus pandemic had severely negatively impacted ordinary Americans. This hypothesis resulted from my belief that struggling Americans would have been forced to sell their homes if they lost the ability to pay their mortgages.
+After noticing the unusually high unemployment rate in the US, I hypothesized that the lack of income among millions of ordinary Americans would exhibit itself in the prices and for-sale quantities of widely-held assets. It is common knowledge that ordinary people are heavily invested in homes. Therefore, to judge the impact of the coronavirus pandemic on ordinary people, I chose to analyze home prices and quantities of for-sale homes. Before looking at the data, I reasoned that home prices should have decreased and for-sale home quantity should have increased if the coronavirus pandemic had severely negatively impacted ordinary Americans. This hypothesis resulted from my belief that struggling Americans would have been forced to sell their homes if they lost the ability to pay their mortgages.
 
-The data shows that home prices actually rose in the time following the onset of the pandemic and the quantity of for-sale homes barely changed. Considering the high unemployment rate in the US, this result is surprising. I analyzed the prices and for-sale quantity of homes in the 10 most expensive and 10 least expensive metropolitan markets to gain a broad understanding of how the pandemic affected the US housing market. Clearly, the pandemic did not affected it that much, which leads me to believe that although the unemployment rate was excruciatingly high, the ordinary American was not affected as negatively as would be expected.
+The data shows that home prices actually rose in the time following the onset of the pandemic and the quantity of for-sale homes barely changed. Considering the high unemployment rate in the US, this result is surprising. I analyzed the prices and for-sale quantity of homes in the 10 most expensive and 10 least expensive metropolitan markets to gain a broad understanding of how the pandemic affected the US housing market. Clearly, the pandemic did not affect it that much, which leads me to believe that although the unemployment rate was excruciatingly high, the ordinary American was not affected as negatively as I had hypothesized.
 
 ```{r}
+# Getting the column names that identify dates of measurements
 cols <- colnames(mlp)[6:length(colnames(mlp))]
 
+# Transforming wide median price dataframe into narrow format for 
+# Easier manipulation and changing string Date to lubridate object
 mlp.refined <- mlp %>%
   select(RegionName, cols) %>%
   gather(key = when, value = MedianPrice, cols) %>% 
@@ -271,15 +308,19 @@ mlp.refined <- mlp %>%
   arrange(Date) %>%
   select(RegionName, MedianPrice, Date)
 
+# Getting most recent median housing prices for all cities
+# And arranging them from most expensive to least expensive
 mlp.final <- mlp.refined %>%
   filter(Date == "2020-10-31") %>%
   arrange(desc(MedianPrice))
 
+# Getting the top 10 cheapest and most expensive cities
 cheap_cities <- mlp.final$RegionName[87:97]
 expensive_cities <- mlp.final$RegionName[1:10]
 ```
 
 ```{r}
+# Renders line chart of median prices time series for given list of cities
 showMP <- function (which_cities, title) {
   
   mlp.refined %>%
@@ -294,15 +335,19 @@ showMP <- function (which_cities, title) {
 ```
 
 ```{r}
+# Display median prices time series line chart for most expensive cities
 showMP(expensive_cities, "Expensive Markets - Median Home Price")
 ```
 
 ```{r}
+# Display median prices time series line chart for cheapest cities
 showMP(cheap_cities, "Cheap Markets - Median Home Price")
 ```
 
 
 ```{r}
+# Transforming wide inventory dataframe into narrow format for 
+# Easier manipulation and changing string Date to lubridate object
 inv.refined <- inv %>%
   select(RegionName, cols) %>%
   gather(key = when, value = Quantity, cols) %>%
@@ -313,6 +358,7 @@ inv.refined <- inv %>%
 ```
 
 ```{r}
+# Renders line chart of inventory time series for given list of cities
 showQuantity <- function (which_cities, title) {
   
   inv.refined %>%
@@ -327,19 +373,29 @@ showQuantity <- function (which_cities, title) {
 ```
 
 ```{r}
+# Display inventory time series line chart for most expensive cities
 showQuantity(expensive_cities, "Expensive Markets - Listed Home Quantity")
 ```
 
 
 ```{r}
+# Display inventory time series line chart for most cheap cities
 showQuantity(cheap_cities, "Cheap Markets - Listed Home Quantity")
 ```
 
 ### Conclusion
 
-Using this data exploration, it appears to me that the United States suffered less than other countries on average from the coronavirus pandemic. I came to this conclusion after observing that the US economy, in terms of nominal GDP, did not shrink as much as the world's other superpower economies. Additionally, the neutral housing market data led me to believe that the ordinary American did not suffer economic consequences as negative as the national unemployment rate suggested. Although the US labor market did suffer significantly more than the other OECD-member countries, it is possible that this problem resulted from the fact that the US decided to go into lock down for a few weeks in Q2. All in all, the US and the American people seem to have fared better than other developed nations during the coronavirus pandemic.
+Using this data exploration, it appears to me that the United States suffered less than other countries on average from the coronavirus pandemic. I come to this conclusion after observing that the US economy, in terms of nominal GDP, did not shrink as much as the world's other superpower economies. Additionally, the housing market data leads me to believe that the ordinary American did not suffer economic consequences as dire as the national unemployment rate at that time suggested. Although the US labor market did suffer significantly more than the other OECD-member countries, it is possible that this problem resulted from the fact that the US decided to go into lock down for a few weeks in Q2. All in all, the US and the American people seem to have fared better than other developed nations during the coronavirus pandemic.
 
+### Embedding Files for Submission Purposes
 
+```{r}
+xfun::embed_file("GDP.csv")
+xfun::embed_file("UNEMPLOYMENT.csv")
+xfun::embed_file("COUNTRYCODES.csv")
+xfun::embed_file("MedianListPrice.csv")
+xfun::embed_file("Inventory.csv")
+```
 
 
 
